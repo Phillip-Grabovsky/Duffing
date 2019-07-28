@@ -52,14 +52,14 @@ public class Oscillator{
       return(new double[] {x, v, t});
     }
 
-    public Oscillator(double a, double b, double c, double w, double F, double x, double v){
+    public Oscillator(double[] variables){
       t = 0;
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.w = w;
-      this.F = F;
-      this.x = x;
-      this.v = v;
+      this.a = variables[0];
+      this.b = variables[1];
+      this.c = variables[2];
+      this.w = variables[3];
+      this.F = variables[4];
+      this.x = variables[5];
+      this.v = variables[6];
     }
 }

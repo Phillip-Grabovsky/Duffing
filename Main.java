@@ -1,58 +1,173 @@
 import javax.swing.JFrame;
+import java.io.*;
 
 public class Main {
+  static double[][] Data;
+
+  //user set variables
+  static double a = 1;
+  static double b = -1;
+  static double c = 0.3;
+  static double w = 1;
+  static double F = 0.5;
+  static double x = 0;
+  static double v = 0;
+
+  //for method parameters
+  static double[] variables = new double[]{a,b,c,w,F,x,v};
+
   //global graphing window variables.
   static int size = 200; //the positive axis distance in pixels.
-  static double maxx = 2; //max x to be represented on graph
-  static double maxv = 2; //max x to be represented on graph
-  static double[][] Data;
-  static double[][] periodData;
-  static double[][][] allPeriods;
+  static double maxx = 1; //max x to be represented on graph
+  static double maxv = 1; //max x to be represented on graph
+  static int waitTime = 10; //the waitTime between frames for an animation
+  static int skip = 1; //if your simulation is very fine, you may want to skip frames to make it faster
+
+  //data resolution and time parameters
+  static int numberData = 1000;
+  static double res = 0.001;
+
+  //path for data output.
+  static String path = "/home/phillip/Documents/Projects/Duffing/";
+
 
   public static void main(String[] args){
-    //user set variables
-    double a = 1;
-    double b = -1;
-    double c = 0.3;
-    double w = 1.2;
-    double F = 0.5;
-    double x = 1;
-    double v = 0;
 
-    int numberData = 1000;
-    double resolution = 0.001;
+    //if you want to increment (use outputFirstFrames), use these values
+    /*double increment = 0.001;
+    double start = 0.3;
+    double end = 0.1;*/
 
-    //run simulation
-    periodData = new double[numberData][3];
-    allPeriods = new double[2+(int)(Math.round(2*Math.PI/(w*resolution)))][numberData+2][3];
-    double endTime = numberData * 2*Math.PI/w;
-    Oscillator theOscillator = new Oscillator(a,b,c,w,F,x,v);
-    double[][] data = theOscillator.evalToTime(endTime,resolution);
+    //when using the graphData method (just plots a set of points), set your data equal to global Data var.
+
+
+    double[][] myData = returnFirstFrame();
+    String xPath = path+"Xfile.txt";
+    String vPath = path+"Vfile.txt";
+    outputData(myData, xPath, vPath);
+  }
+
+
+
+
+
+  public static double[][] returnFirstFrame() {
+    //return the first poincare section.
+
+    double[][] firstFrame = new double[numberData][3]; //final output
+    double nextPeriod = 0; //period phase detection
+    double onePeriod = 2*Math.PI/w; //^
+
+    double[][] data = returnAllPoints(); //get the data
     int dataAdded = 0;
-    Data = data;
-    int placeInPeriod = 0;
-    int periodNumber = 0;
-    double nextPeriod = 0;
-    for(int i = 0; i < data.length; i++){
-      allPeriods[placeInPeriod][periodNumber] = data[i];
-      if(data[i][2] >= nextPeriod){
+
+    //next step is to pick out only the first point of each driver period.
+    for(int i = 0; i<data.length; i++){
+      if(data[i][2] >= nextPeriod){ //only add points when driver has correct phase
+        firstFrame[dataAdded] = data[i];
         dataAdded++;
-        placeInPeriod = 0;
-        periodNumber++;
-        periodData[dataAdded-1] = data[i];
-        System.out.println("(" + data[i][2] + ", " + data[i][0] + ", "  + data[i][1] + ")");
-        nextPeriod+=(2*Math.PI)/w;
+        nextPeriod+=onePeriod; //phase detection
       }
-      placeInPeriod++;
     }
 
-    System.out.println("data added: " + dataAdded);
-    animatePeriods();
+    return firstFrame;
   }
+
+
+
+
+
+  public static double[][][] returnAllFrames(){
+    //separate the data file into groups based on the phase.
+    int placeInPeriod = 0; //indexing final array
+    int periodNumber = 0; //indexing final array
+    double onePeriod = 2*Math.PI/w; //phase detection
+    double nextPeriod = 0;
+    double[][] data = returnAllPoints(); //get the data!
+    double[][][] allPeriods = new double[2+(int)(Math.round(2*Math.PI/(w*res)))][numberData+2][3];
+    //above line provides for any weird discrepancies in counting phase, leaves extra empty space in array.
+
+    for(int i = 0; i < data.length; i++){
+      allPeriods[placeInPeriod][periodNumber] = data[i];
+      placeInPeriod++;
+
+      //when the end of the period has been reached:
+      if(data[i][2] >= nextPeriod){
+        //reset or increment the followig values
+        placeInPeriod = 0;
+        periodNumber++;
+        nextPeriod+=onePeriod;
+      }
+    }
+
+    return allPeriods;
+  }
+
+
+
+
+  public static double[][] returnAllPoints(){
+    double endTime = numberData * 2*Math.PI/w;
+    Oscillator theOscillator = new Oscillator(variables);
+    double[][] data = theOscillator.evalToTime(endTime,res);
+    return data;
+  }
+
+
+
+
+  public static double[][][] returnFirstFrames(int index, double start, double end, double increment){
+    //don't be stupid:
+    variables[index] = start;
+
+    //iterate one variable by a certain increment and look at first poincare section!
+    int numberIterations = (int)Math.round(Math.abs(end - start) / increment);
+    //make sure that we are incrementing in the correct direction
+
+    if((start - end) > 0){
+      increment = -1*increment;
+    }
+
+    double[][][] firstFrames = new double[numberIterations][numberData][3];
+    for(int i = 0; i<numberIterations; i++){ //iterate the correct variable and add results
+      System.out.println(variables[index]);
+      variables[index] += increment;
+      firstFrames[i] = returnFirstFrame();
+    }
+    return firstFrames;
+  }
+
+
+
+
+  public static void outputData(double[][] data, String pathX, String pathV){
+    try {
+      File fileX = new File(pathX);
+      File fileV = new File(pathV);
+      BufferedWriter outputX = new BufferedWriter(new FileWriter(fileX));
+      BufferedWriter outputV = new BufferedWriter(new FileWriter(fileV));
+
+      for(double[] point : data){
+        outputX.write(point[0] + "\n");
+        outputV.write(point[1] + "\n");
+      }
+
+      outputX.close();
+      outputV.close();
+    } catch ( IOException e ) {
+      e.printStackTrace();
+    }
+  }
+
+
 
   public static double[][] returnData(){
     return Data;
   }
+
+
+
+
 
   public static void graphData(){
     JFrame frame = new JFrame("Simulation");
@@ -63,7 +178,11 @@ public class Main {
   }
 
 
-  public static void animatePeriods(){
+
+
+
+
+  public static void animatePeriods(double[][][] allPeriods){
     Data = allPeriods[0];
     JFrame frame = new JFrame("Animation");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -72,13 +191,20 @@ public class Main {
     frame.setVisible(true);
 
     while(true){
+      int skipvalue = 0;
       for(double[][] graph : allPeriods){
-        Data = graph;
-        try{ Thread.sleep(1); }
-        catch (Exception exc){}
-        frame.repaint();
+        skipvalue++;
+        if(skipvalue == skip){
+          skipvalue = 0;
+          Data = graph;
+          try{ Thread.sleep(waitTime); }
+          catch (Exception exc){}
+          frame.repaint();
+        }
       }
     }
   }
+
+
 
 }
