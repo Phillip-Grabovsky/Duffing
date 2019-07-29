@@ -6,12 +6,14 @@ public class Main {
 
   //user set variables
   static double a = 1;
-  static double b = -1;
-  static double c = 0.3;
+  static double b = 0.2;
+  static double c = 0.15;
   static double w = 1;
-  static double F = 0.5;
+  static double F = 0.855*0.3;
   static double x = 0;
   static double v = 0;
+
+  static String[] var = new String[] {"a", "b", "c", "w", "F", "x", "v"};
 
   //for method parameters
   static double[] variables = new double[]{a,b,c,w,F,x,v};
@@ -28,7 +30,7 @@ public class Main {
   static double res = 0.001;
 
   //path for data output.
-  static String path = "/home/phillip/Documents/Projects/Duffing/";
+  static String path = "/home/phillip/Documents/Projects/Duffing/Data/";
 
 
   public static void main(String[] args){
@@ -39,12 +41,40 @@ public class Main {
     double end = 0.1;*/
 
     //when using the graphData method (just plots a set of points), set your data equal to global Data var.
+    /*int numberTimes = 100;
+    int totalPeriods = numberData * numberTimes;
 
+    double[][] data = new double[totalPeriods][3];
+    for(int i = 0; i <numberTimes; i++){
+      double[][] smallData = returnFirstFrame();
+      for(int j = 0; j < numberData; j++){
+        data[i*numberData+j] = smallData[j];
+      }
+      variables[5] = smallData[smallData.length-1][0];
+      variables[6] = smallData[smallData.length-1][1];
+    }*/
 
-    double[][] myData = returnFirstFrame();
+    int index = 0;
+    double increment = 0.001;
+    double start = 0.70;
+    double end = 1.40;
+    double[][][] myData = returnFirstFrames(index,start,end,increment);
+    for(int i = 0; i<(end - start)/increment; i++){
+      double[][] data = myData[i];
+      String xPath = path + var[index] + "="+ (start+increment*i) + "xFile.txt";
+      String vPath = path + var[index] + "="+ (start+increment*i) + "vFile.txt";
+      outputData(data,xPath,vPath);
+      Data = data;
+      //String name = var[index] +  " = " +  (start+i*increment);
+      //graphData(name);
+    }
+    animatePeriods(myData);
+
+    //data output
+    /*double[][] myData = returnFirstFrame();
     String xPath = path+"Xfile.txt";
     String vPath = path+"Vfile.txt";
-    outputData(myData, xPath, vPath);
+    outputData(myData, xPath, vPath);*/
   }
 
 
@@ -169,8 +199,8 @@ public class Main {
 
 
 
-  public static void graphData(){
-    JFrame frame = new JFrame("Simulation");
+  public static void graphData(String name){
+    JFrame frame = new JFrame(name);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.add(new Grapher(size, maxx, maxv));
     frame.pack();

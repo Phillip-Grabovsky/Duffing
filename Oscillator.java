@@ -16,7 +16,7 @@ public class Oscillator{
     public void timeStep(double dt){
       //change the system's state by one small iteration
       //calculates acceleration from the duffing oscillator
-      double A = F*Math.cos(w*t) -a*Math.pow(x,3) - b*x - c*v;
+      double A = F*Math.cos(w*t) -a*Math.pow(x,3) + b*x - c*v;
       x+=dt*v;
       v+=dt*A;
       t+=dt;
