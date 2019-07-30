@@ -26,9 +26,7 @@ public class Oscillator{
     public double[][] evalToTime(double endTime, double res){
       //evaluates an interval starting at the current time and ending at endTime, outputs a list of
       // eval() results.
-      System.out.println("time: " + t);
       int numberSteps = (int)(Math.round((endTime-t)/res));
-      System.out.println("number of steps today: " + numberSteps);
       double[][] theData = new double[numberSteps][3];
       for(int timeNumber = 0; timeNumber < numberSteps; timeNumber++){
         theData[timeNumber] = new double[] {x, v, t};

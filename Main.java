@@ -30,17 +30,23 @@ public class Main {
   //if you want to use a segmented solver (high res for long time, dumps unused data to save memory)
   //set numberSegments to 1 for no segmenting!
   //At the current state, using increased segmenting turns simulation into an O(t^2) algorithm, where t is the final time.
-  static int numberSegments = 10;
+  static int numberSegments = 100;
 
   //path for data output.
-  static String path = "/home/phillip/Documents/Projects/Duffing/Data2/";
+  static String path = "/home/phillip/Documents/Projects/Duffing/Data/";
   static String[] var = new String[] {"a", "b", "c", "w", "F", "x", "v"};
 
   public static void main(String[] args){
 
+    /*
     double[][] allSegmentedPoints = returnFirstFrame();
     Data = allSegmentedPoints;
     graphData("ishaan");
+    */
+
+    double[][] info = new double[][] {{1,2,0.1},{1,2,0.1},{0.15,2.15,0.1}};
+    int[] indecies = new int[] {0,1,2};
+    iterateVariables(indecies,info);
 
     /*
     int index = 3;
@@ -63,8 +69,8 @@ public class Main {
       //graphData(name);
       try{ Thread.sleep(2000); }
       catch (Exception exc){}
-    }*/
-
+    }
+    */
   }
 
 
@@ -137,19 +143,28 @@ public class Main {
   }
 
 
-  /*public static void iterateVariables(int[] indecies, double[][] info){
+  public static void iterateVariables(int[] indecies, double[][] info){
     //info: 2d array which looks like this:
-    // [[increment, start, end], [increment, start, end], [increment, start, end], ... ]
-
+    //yes, this code is quite awful. currently, it only iterates a hard-coded number of variables.
+    // [[start, end, increment], [start, end, increment], [start, end, increment], ... ]
     //iterates three variables, testing the entire space of bounds.
-    for(int i = 0; i<indecies.length; i++){
-      variables[indecies[i]] = starts[i];
+    //assumes starting values are always lower than ending values.
+
+    //for convinience:
+    int i = indecies[0];
+    int j = indecies[1];
+    int k = indecies[2];
+
+    //time for some O(n^3) stuff!
+    for(variables[i] = info[0][0]; variables[i] <= info[0][1]; variables[i]+=info[0][2]){
+      for(variables[j] = info[1][0]; variables[j] <= info[1][1]; variables[j]+=info[1][2]){
+        for(variables[k] = info[2][0]; variables[k] <= info[2][1]; variables[k]+=info[2][2]){
+          System.out.println(variables[i] + ", " + variables[j] + ", " + variables[k]);
+        }
+      }
     }
 
-    for(double var1 = )
-
   }
-  */
 
 
 
@@ -216,32 +231,6 @@ public class Main {
   }
 
 
-
-
-
-
-  public static double[][] getSegmentedPoints(){
-    //make the full data array
-    int totalSteps = (int)(Math.round(numberData*numberSegments*2*Math.PI/(w*res))) + 1;
-    double[][] data = new double[totalSteps][3];
-    System.out.println("full data array: " + data.length);
-
-    //create an oscillator
-    Oscillator theOscillator = new Oscillator(variables);
-
-    int currentDataIndex = 0;
-    for(int i = 0; i < numberSegments; i++){ //iterate over all the segments necessary
-      double endTime = (i+1) * numberData*(2*Math.PI/w);
-      double[][] smallData = theOscillator.evalToTime(endTime,res); //evaluate it to the edge of next segment.
-      System.out.println("small data array: " + smallData.length);
-
-      for(int j = 0; j<smallData.length; j++){ //incorportate that data into the full data array
-        data[currentDataIndex] = smallData[j];
-        currentDataIndex++;
-      }
-    }
-    return data;
-  }
 
 
 
