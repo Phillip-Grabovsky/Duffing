@@ -37,7 +37,7 @@ public class Grapher extends JPanel {
       double x = data[i][0]*xScalar;
       double v = data[i][1]*vScalar;
 
-      g.drawOval(WINDOW_SIZE+(int)(Math.round(x)),WINDOW_SIZE-(int)(Math.round(v)),2,2);
+      g.drawOval(WINDOW_SIZE+(int)(Math.round(x)),WINDOW_SIZE-(int)(Math.round(v)),1,1);
     }
   }
 

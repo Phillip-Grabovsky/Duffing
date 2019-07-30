@@ -6,14 +6,12 @@ public class Main {
 
   //user set variables
   static double a = 1;
-  static double b = 0.2;
+  static double b = 1;
   static double c = 0.15;
   static double w = 1;
   static double F = 0.855*0.3;
   static double x = 0;
   static double v = 0;
-
-  static String[] var = new String[] {"a", "b", "c", "w", "F", "x", "v"};
 
   //for method parameters
   static double[] variables = new double[]{a,b,c,w,F,x,v};
@@ -22,43 +20,39 @@ public class Main {
   static int size = 200; //the positive axis distance in pixels.
   static double maxx = 1; //max x to be represented on graph
   static double maxv = 1; //max x to be represented on graph
-  static int waitTime = 10; //the waitTime between frames for an animation
+  static int waitTime = 100; //the waitTime between frames for an animation
   static int skip = 1; //if your simulation is very fine, you may want to skip frames to make it faster
 
   //data resolution and time parameters
   static int numberData = 1000;
   static double res = 0.001;
 
-  //path for data output.
-  static String path = "/home/phillip/Documents/Projects/Duffing/Data/";
+  //if you want to use a segmented solver (high res for long time, dumps unused data to save memory)
+  //set numberSegments to 1 for no segmenting!
+  //At the current state, using increased segmenting turns simulation into an O(t^2) algorithm, where t is the final time.
+  static int numberSegments = 10;
 
+  //path for data output.
+  static String path = "/home/phillip/Documents/Projects/Duffing/Data2/";
+  static String[] var = new String[] {"a", "b", "c", "w", "F", "x", "v"};
 
   public static void main(String[] args){
 
-    //if you want to increment (use outputFirstFrames), use these values
-    /*double increment = 0.001;
-    double start = 0.3;
-    double end = 0.1;*/
+    double[][] allSegmentedPoints = returnFirstFrame();
+    Data = allSegmentedPoints;
+    graphData("ishaan");
 
-    //when using the graphData method (just plots a set of points), set your data equal to global Data var.
-    /*int numberTimes = 100;
-    int totalPeriods = numberData * numberTimes;
+    /*
+    int index = 3;
+    double increment = 0.05;
+    double start = 0.05;
+    double end = 3;
+    double[][][] myData = returnFirstFrames(index,start,end+increment,increment);
 
-    double[][] data = new double[totalPeriods][3];
-    for(int i = 0; i <numberTimes; i++){
-      double[][] smallData = returnFirstFrame();
-      for(int j = 0; j < numberData; j++){
-        data[i*numberData+j] = smallData[j];
-      }
-      variables[5] = smallData[smallData.length-1][0];
-      variables[6] = smallData[smallData.length-1][1];
-    }*/
+    animatePeriods(myData);
 
-    int index = 0;
-    double increment = 0.001;
-    double start = 0.70;
-    double end = 1.40;
-    double[][][] myData = returnFirstFrames(index,start,end,increment);
+
+    //create filenames and store data.
     for(int i = 0; i<(end - start)/increment; i++){
       double[][] data = myData[i];
       String xPath = path + var[index] + "="+ (start+increment*i) + "xFile.txt";
@@ -67,14 +61,10 @@ public class Main {
       Data = data;
       //String name = var[index] +  " = " +  (start+i*increment);
       //graphData(name);
-    }
-    animatePeriods(myData);
+      try{ Thread.sleep(2000); }
+      catch (Exception exc){}
+    }*/
 
-    //data output
-    /*double[][] myData = returnFirstFrame();
-    String xPath = path+"Xfile.txt";
-    String vPath = path+"Vfile.txt";
-    outputData(myData, xPath, vPath);*/
   }
 
 
@@ -83,20 +73,23 @@ public class Main {
 
   public static double[][] returnFirstFrame() {
     //return the first poincare section.
+    Oscillator theOscillator = new Oscillator(variables);
 
-    double[][] firstFrame = new double[numberData][3]; //final output
+    double[][] firstFrame = new double[numberData*numberSegments][3]; //final output
     double nextPeriod = 0; //period phase detection
-    double onePeriod = 2*Math.PI/w; //^
-
-    double[][] data = returnAllPoints(); //get the data
+    double onePeriod = 2*Math.PI/w;
     int dataAdded = 0;
 
-    //next step is to pick out only the first point of each driver period.
-    for(int i = 0; i<data.length; i++){
-      if(data[i][2] >= nextPeriod){ //only add points when driver has correct phase
-        firstFrame[dataAdded] = data[i];
-        dataAdded++;
-        nextPeriod+=onePeriod; //phase detection
+    for(int i = 0; i < numberSegments; i++){ //iterate over all the segments necessary
+      double endTime = (i+1) * numberData*(2*Math.PI/w);
+      double[][] smallData = theOscillator.evalToTime(endTime,res); //evaluate it to the edge of next segment.
+
+      for(int j = 0; j<smallData.length; j++){ //incorportate that data into the full data array
+        if(smallData[j][2] >= nextPeriod){ //only add points when driver has correct phase
+          firstFrame[dataAdded] = smallData[j];
+          dataAdded++;
+          nextPeriod+=onePeriod; //phase detection
+        }
       }
     }
 
@@ -137,12 +130,26 @@ public class Main {
 
 
   public static double[][] returnAllPoints(){
-    double endTime = numberData * 2*Math.PI/w;
+    double endTime = (numberData * 2*Math.PI/w);
     Oscillator theOscillator = new Oscillator(variables);
-    double[][] data = theOscillator.evalToTime(endTime,res);
+    double[][] data = theOscillator.evalToTime(endTime,res); //now run to end time, recording data.
     return data;
   }
 
+
+  /*public static void iterateVariables(int[] indecies, double[][] info){
+    //info: 2d array which looks like this:
+    // [[increment, start, end], [increment, start, end], [increment, start, end], ... ]
+
+    //iterates three variables, testing the entire space of bounds.
+    for(int i = 0; i<indecies.length; i++){
+      variables[indecies[i]] = starts[i];
+    }
+
+    for(double var1 = )
+
+  }
+  */
 
 
 
@@ -152,6 +159,7 @@ public class Main {
 
     //iterate one variable by a certain increment and look at first poincare section!
     int numberIterations = (int)Math.round(Math.abs(end - start) / increment);
+    System.out.println("numberIterations: " + numberIterations);
     //make sure that we are incrementing in the correct direction
 
     if((start - end) > 0){
@@ -207,6 +215,33 @@ public class Main {
     frame.setVisible(true);
   }
 
+
+
+
+
+
+  public static double[][] getSegmentedPoints(){
+    //make the full data array
+    int totalSteps = (int)(Math.round(numberData*numberSegments*2*Math.PI/(w*res))) + 1;
+    double[][] data = new double[totalSteps][3];
+    System.out.println("full data array: " + data.length);
+
+    //create an oscillator
+    Oscillator theOscillator = new Oscillator(variables);
+
+    int currentDataIndex = 0;
+    for(int i = 0; i < numberSegments; i++){ //iterate over all the segments necessary
+      double endTime = (i+1) * numberData*(2*Math.PI/w);
+      double[][] smallData = theOscillator.evalToTime(endTime,res); //evaluate it to the edge of next segment.
+      System.out.println("small data array: " + smallData.length);
+
+      for(int j = 0; j<smallData.length; j++){ //incorportate that data into the full data array
+        data[currentDataIndex] = smallData[j];
+        currentDataIndex++;
+      }
+    }
+    return data;
+  }
 
 
 
