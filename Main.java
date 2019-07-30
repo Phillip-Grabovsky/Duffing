@@ -29,8 +29,7 @@ public class Main {
 
   //if you want to use a segmented solver (high res for long time, dumps unused data to save memory)
   //set numberSegments to 1 for no segmenting!
-  //At the current state, using increased segmenting turns simulation into an O(t^2) algorithm, where t is the final time.
-  static int numberSegments = 100;
+  static int numberSegments = 1;
 
   //path for data output.
   static String path = "/home/phillip/Documents/Projects/Duffing/Data/";
@@ -44,7 +43,7 @@ public class Main {
     graphData("ishaan");
     */
 
-    double[][] info = new double[][] {{1,2,0.1},{1,2,0.1},{0.15,2.15,0.1}};
+    double[][] info = new double[][] {{1,2,0.2},{1,2,0.2},{0.15,2.15,0.2}};
     int[] indecies = new int[] {0,1,2};
     iterateVariables(indecies,info);
 
@@ -143,6 +142,8 @@ public class Main {
   }
 
 
+
+
   public static void iterateVariables(int[] indecies, double[][] info){
     //info: 2d array which looks like this:
     //yes, this code is quite awful. currently, it only iterates a hard-coded number of variables.
@@ -159,7 +160,11 @@ public class Main {
     for(variables[i] = info[0][0]; variables[i] <= info[0][1]; variables[i]+=info[0][2]){
       for(variables[j] = info[1][0]; variables[j] <= info[1][1]; variables[j]+=info[1][2]){
         for(variables[k] = info[2][0]; variables[k] <= info[2][1]; variables[k]+=info[2][2]){
-          System.out.println(variables[i] + ", " + variables[j] + ", " + variables[k]);
+          System.out.println("step: " + var[i]+"="+variables[i]+","+var[j]+"="+variables[j]+","+var[k]+"="+variables[k]);
+          String pathX = path + var[i]+"="+variables[i]+","+var[j]+"="+variables[j]+","+var[k]+"="+variables[k]+"X";
+          String pathV = path + var[i]+"="+variables[i]+","+var[j]+"="+variables[j]+","+var[k]+"="+variables[k]+"V";
+          double[][] data = returnFirstFrame();
+          outputData(data, pathX, pathV);
         }
       }
     }
