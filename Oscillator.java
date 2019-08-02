@@ -32,7 +32,6 @@ public class Oscillator{
         theData[timeNumber] = new double[] {x, v, t};
         timeStep(res);
       }
-
       return(theData);
     }
 
